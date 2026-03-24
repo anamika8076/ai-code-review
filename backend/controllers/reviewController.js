@@ -1,11 +1,13 @@
-const analyzeCode = require("../services/codeAnalyzer");
-const aiReview = require("../services/aiReviewer");
+const analyzeWithCache = require("../services/cachedAnalyzer");
+
 
 exports.reviewCode = async (req, res) => {
+  
 
   try {
+    console.log("Request body:", req.body);
 
-    const { code, language } = req.body;
+    const { code, language, dependencies } = req.body;
 
     if (!code || !language) {
       return res.status(400).json({
@@ -13,22 +15,15 @@ exports.reviewCode = async (req, res) => {
       });
     }
 
-    const analysis = analyzeCode(code,  dependencies);
-
-    const aiSuggestions = await aiReview(code, language);
+    const analysis = await analyzeWithCache(code, dependencies || []);
 
     
-  res.json({
-    staticAnalysis: analysis,
-    aiReview: aiSuggestions
-  });
-
-  } catch (error) {
-
-    res.status(500).json({
-      error: "Server error"
+    res.json({
+      staticAnalysis: analysis,
+      
     });
-
+  } catch (error) {
+    console.error("Review error:", error);
+    return res.status(500).json({ error: "Failed to generate code review." });
   }
-
 };

@@ -2,22 +2,27 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@babel/parser": "^7.29.0",
     "@babel/traverse": "^7.29.0",
+    "@google/genai": "^1.44.0",
     "axios": "^1.13.6",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "eslint": "^10.1.0",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.0",
+    "morgan": "^1.10.1",
     "openai": "^6.27.0"
-  }
+  },
+  "devDependencies": {}
 }
