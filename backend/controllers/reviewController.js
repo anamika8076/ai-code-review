@@ -1,9 +1,6 @@
 const analyzeWithCache = require("../services/cachedAnalyzer");
 
-
 exports.reviewCode = async (req, res) => {
-  
-
   try {
     console.log("Request body:", req.body);
 
@@ -17,13 +14,19 @@ exports.reviewCode = async (req, res) => {
 
     const analysis = await analyzeWithCache(code, dependencies || []);
 
-    
-    res.json({
-      staticAnalysis: analysis,
-      
-    });
+    console.log("🔥 FINAL RESULT SENT:", analysis);
+
+    // ✅ FIXED RESPONSE
+    res.json(analysis);
+
   } catch (error) {
-    console.error("Review error:", error);
-    return res.status(500).json({ error: "Failed to generate code review." });
+    console.error("REAL ERROR:", error);
+
+    return res.status(500).json({
+      issues: [],
+      score: 0,
+      complexityLevel: "Unknown",
+      error: "Failed to generate code review."
+    });
   }
 };

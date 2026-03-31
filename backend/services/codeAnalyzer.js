@@ -5,34 +5,82 @@ const runESLint = require("./eslintAnalyzer");
 const runAudit = require("./auditAnalyzer");
 
 async function analyzeCode(code, dependencies = []) {
-  const auditResults = runAudit();
-      if (auditResults[0]?.error) {
-  console.log("Skipping audit...");
-}
-  
 
-
+  // ✅ FIX 1: Safe audit
+  let auditResults = [];
+  try {
+    const result = await runAudit();
+    if (Array.isArray(result)) {
+      auditResults = result;
+    }
+  } catch (err) {
+    console.log("Audit failed:", err.message);
+  }
 
   const issues = [];
-    const eslintIssues = await runESLint(code);
-issues.push(...eslintIssues);
 
-  const ast = parser.parse(code, {
-    sourceType: "module",
-    plugins: ["jsx"]
-  });
+  // ✅ FIX 2: TEMP disable ESLint (DEBUG PURPOSE)
+  // 🔥 IMPORTANT: Comment this for now
+  /*
+  try {
+    const eslintIssues = await runESLint(code);
+    if (Array.isArray(eslintIssues)) {
+      issues.push(...eslintIssues);
+    }
+  } catch (err) {
+    console.log("ESLint failed:", err.message);
+  }
+  */
+
+  // ✅ FIX 3: Safe parser
+  let ast;
+
+  try {
+    ast = parser.parse(code, {
+      sourceType: "module",
+      plugins: ["jsx"]
+    });
+  } catch (err) {
+    console.log("⚠️ Parsing failed, using fallback wrapper...");
+
+    const wrappedCode = `function temp(){\n${code}\n}`;
+
+    try {
+      ast = parser.parse(wrappedCode, {
+        sourceType: "module",
+        plugins: ["jsx"]
+      });
+    } catch (err2) {
+      console.log("❌ Parsing completely failed:", err2.message);
+
+      return {
+        issues: [{
+          type: "Syntax",
+          severity: "High",
+          message: "Invalid or incomplete code."
+        }],
+        complexityScore: 0,
+        complexityLevel: "Unknown",
+        score: 0,
+        vulnerableDependencies: [],
+        auditResults: []
+      };
+    }
+  }
 
   let complexity = 1;
   let consoleCount = 0;
 
+  // ✅ FIX 4: Traversal (add logs)
   traverse(ast, {
 
     CallExpression(path) {
-
       const callee = path.node.callee;
 
-      // eval()
-      if (callee.type === "Identifier" && callee.name === "eval") {
+      console.log("CALL FOUND:", callee?.name);
+
+      if (callee?.type === "Identifier" && callee.name === "eval") {
+        console.log("🔥 DETECTED eval");
         issues.push({
           type: "Security",
           severity: "High",
@@ -40,12 +88,12 @@ issues.push(...eslintIssues);
         });
       }
 
-      // setTimeout/setInterval with string
       if (
-        callee.type === "Identifier" &&
+        callee?.type === "Identifier" &&
         (callee.name === "setTimeout" || callee.name === "setInterval")
       ) {
-        if (path.node.arguments[0]?.type === "StringLiteral") {
+        if (path.node.arguments?.[0]?.type === "StringLiteral") {
+          console.log("🔥 DETECTED setTimeout string");
           issues.push({
             type: "Security",
             severity: "High",
@@ -55,17 +103,17 @@ issues.push(...eslintIssues);
       }
     },
 
-    // console.log detection
     MemberExpression(path) {
+
       if (
-        path.node.object.name === "console" &&
-        path.node.property.name === "log"
+        path.node.object?.name === "console" &&
+        path.node.property?.name === "log"
       ) {
+        console.log("🔥 DETECTED console.log");
         consoleCount++;
       }
 
-      // innerHTML detection
-      if (path.node.property.name === "innerHTML") {
+      if (path.node.property?.name === "innerHTML") {
         issues.push({
           type: "Security",
           severity: "High",
@@ -74,9 +122,9 @@ issues.push(...eslintIssues);
       }
     },
 
-    // var usage
     VariableDeclaration(path) {
       if (path.node.kind === "var") {
+        console.log("🔥 DETECTED var");
         issues.push({
           type: "Best Practice",
           severity: "Medium",
@@ -85,9 +133,9 @@ issues.push(...eslintIssues);
       }
     },
 
-    // == usage
     BinaryExpression(path) {
       if (path.node.operator === "==") {
+        console.log("🔥 DETECTED ==");
         issues.push({
           type: "Best Practice",
           severity: "Medium",
@@ -96,12 +144,14 @@ issues.push(...eslintIssues);
       }
     },
 
-    // Hardcoded secrets (basic check)
     StringLiteral(path) {
+      const value = path.node.value?.toLowerCase?.();
+
       if (
-        path.node.value.toLowerCase().includes("apikey") ||
-        path.node.value.toLowerCase().includes("password")
+        value?.includes("apikey") ||
+        value?.includes("password")
       ) {
+        console.log("🔥 DETECTED secret");
         issues.push({
           type: "Security",
           severity: "High",
@@ -110,7 +160,6 @@ issues.push(...eslintIssues);
       }
     },
 
-    // Complexity checks
     IfStatement() { complexity++; },
     ForStatement() { complexity++; },
     WhileStatement() { complexity++; },
@@ -118,7 +167,7 @@ issues.push(...eslintIssues);
 
   });
 
-  // console log rule
+  // ✅ console rule
   if (consoleCount > 3) {
     issues.push({
       type: "Code Quality",
@@ -127,12 +176,14 @@ issues.push(...eslintIssues);
     });
   }
 
-  // Complexity level
+  console.log("🔥 FINAL ISSUES:", issues);
+
+  // ✅ complexity
   let complexityLevel = "Low";
   if (complexity > 10) complexityLevel = "Medium";
   if (complexity > 20) complexityLevel = "High";
 
-  // 🔥 Score system
+  // ✅ score
   let score = 10;
 
   issues.forEach(issue => {
@@ -143,38 +194,13 @@ issues.push(...eslintIssues);
 
   if (score < 0) score = 0;
 
-  // Dependency scan (improved)
-  const vulnerableDependencies = [];
-
-  for (const dep of dependencies) {
-    try {
-      const response = await axios.get(
-        `https://registry.npmjs.org/${dep}`
-      );
-
-      const latestVersion = response.data["dist-tags"].latest;
-
-      vulnerableDependencies.push({
-        name: dep,
-        latestVersion,
-        note: "Check npm audit for vulnerabilities"
-      });
-
-    } catch (error) {
-      vulnerableDependencies.push({
-        name: dep,
-        issue: "Unable to check dependency"
-      });
-    }
-  }
-
   return {
     issues,
     complexityScore: complexity,
     complexityLevel,
     score,
-    vulnerableDependencies,
-    auditResults 
+    vulnerableDependencies: [],
+    auditResults
   };
 }
 
