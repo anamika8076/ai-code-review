@@ -37,7 +37,10 @@ function activate(context) {
                 'reviewResult',
                 'Code Analysis Result',
                 vscode.ViewColumn.Beside,
-                {}
+                {
+                    enableScripts: true,
+        retainContextWhenHidden: true
+                }
             );
 
             // ✅ Normalize safely
@@ -63,6 +66,22 @@ function activate(context) {
 
             // ✅ Render UI
             panel.webview.html = `
+            <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Review</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            padding: 20px; 
+        }
+        h1 { color: #007acc; }
+        hr { margin: 15px 0; }
+    </style>
+</head>
+
+<body>
                 <h1>🚀 Code Review</h1>
 
                 <h2 style="color:${scoreColor}">
