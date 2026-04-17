@@ -1,4 +1,5 @@
 const analyzeWithCache = require("../services/cachedAnalyzer");
+const fixCodeService = require("../services/fixer");
 
 exports.reviewCode = async (req, res) => {
   try {
@@ -27,6 +28,34 @@ exports.reviewCode = async (req, res) => {
       score: 0,
       complexityLevel: "Unknown",
       error: "Failed to generate code review."
+    });
+  }
+};
+
+exports.fixCode = (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        error: "Code is required"
+      });
+    }
+
+    const fixedCode = fixCodeService(code);
+
+    console.log("✅ FIXED CODE:", fixedCode);
+
+    res.json({
+      success: true,
+      fixedCode
+    });
+
+  } catch (error) {
+    console.error("FIX ERROR:", error);
+
+    res.status(500).json({
+      error: "Failed to fix code"
     });
   }
 };
