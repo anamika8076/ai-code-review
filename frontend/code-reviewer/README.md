@@ -1,65 +1,33 @@
-# code-reviewer README
+# AI Code Reviewer
 
-This is the README for your extension "code-reviewer". After writing up a brief description, we recommend including the following sections.
+AI-powered VS Code extension for automated code review and auto-fix.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 🔍 **Static Analysis** — Detects bugs, security issues, bad practices
+- 🤖 **AI Review** — Powered by Groq LLM for all languages
+- 🛠️ **Auto Fix** — One click fixes for JavaScript code
+- 📊 **Score** — Code quality score out of 10
+- 🛡️ **Security** — Detects eval, XSS, hardcoded secrets
+- 📦 **Audit** — npm vulnerability check
 
-For example if there is an image subfolder under your extension project workspace:
+## Supported Languages
 
-\!\[feature X\]\(images/feature-x.png\)
+- **JavaScript** — Full static analysis + AI fix
+- **All other languages** (Python, Java, TypeScript, C++) — AI-powered review via Groq
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## How to Use
+
+1. Open any code file in VS Code
+2. Select code (or press `Cmd+A` to select all)
+3. Right click → **"AI Review: Analyze This"**
+4. View issues, AI review, and score
+5. Click **"Fix Issues"** to auto-fix
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Backend server must be running at `http://localhost:3000` or configure custom URL in settings.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+- `codeReviewer.backendUrl` — Backend server URL (default: `http://localhost:3000`)

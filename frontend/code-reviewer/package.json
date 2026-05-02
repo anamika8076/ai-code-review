@@ -1,6 +1,6 @@
 {
-  "name": "code-reviewer",
-  "displayName": "Code Reviewer",
+  "name": "codewise-ai",
+  "displayName": "CodeWise AI",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -9,35 +9,37 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": ["onCommand:code-reviewer.reviewCode"],
-  "main": "./extension.js",
-"contributes": {
-  "commands": [
-    {
-      "command": "code-reviewer.reviewCode",
-      "title": "AI Review: Analyze This"
-    }
+  "activationEvents": [
+    "onCommand:code-reviewer.reviewCode"
   ],
-  "menus": {
-    "editor/context": [
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
       {
         "command": "code-reviewer.reviewCode",
-        "group": "navigation",
-        "when": "editorHasSelection"
+        "title": "AI Review: Analyze This"
       }
-    ]
-  },
-  "configuration": {
-    "title": "Code Reviewer",
-    "properties": {
-      "codeReviewer.backendUrl": {
-        "type": "string",
-        "default": "http://localhost:3000",
-        "description": "Backend server URL (e.g. http://localhost:3000)"
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "code-reviewer.reviewCode",
+          "group": "navigation",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Code Reviewer",
+      "properties": {
+        "codeReviewer.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Backend server URL (e.g. http://localhost:3000)"
+        }
       }
     }
-  }
-},
+  },
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
@@ -53,5 +55,6 @@
   },
   "dependencies": {
     "axios": "^1.14.0"
-  }
+  },
+  "publisher": "Anamikaverma"
 }

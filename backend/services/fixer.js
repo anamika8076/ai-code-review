@@ -182,6 +182,23 @@ function fixCode(code) {
             }
         },
 
+        // ✅ Object property mein hardcoded password fix
+        ObjectProperty(path) {
+            const keyName = path.node.key?.name || path.node.key?.value || "";
+            if (
+                isSecretVarName(keyName) &&
+                t.isStringLiteral(path.node.value)
+            ) {
+                const envKey = toEnvKey(keyName);
+                path.node.value = t.memberExpression(
+                    t.memberExpression(t.identifier("process"), t.identifier("env")),
+                    t.identifier(envKey)
+                );
+                fixCount++;
+                fixLog.push(`Line ${path.node.loc?.start?.line}: object property "${keyName}" → process.env.${envKey}`);
+            }
+        },
+
         // ✅ innerHTML → textContent
         AssignmentExpression(path) {
             if (
