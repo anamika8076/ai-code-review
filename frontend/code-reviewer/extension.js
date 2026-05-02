@@ -11,7 +11,7 @@ function escapeHtml(str) {
 
 function getBackendUrl() {
     const config = vscode.workspace.getConfiguration('codeReviewer');
-    return config.get('backendUrl') || 'http://localhost:3000';
+    return config.get('backendUrl') || 'https://ai-code-review-production-a278.up.railway.app';
 }
 
 function activate(context) {
