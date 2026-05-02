@@ -1,29 +1,91 @@
+const crypto = require("crypto");
 const analyzeCode = require("./codeAnalyzer");
 
+const MAX_CACHE_SIZE = 100;   // max entries
+const TTL_MS = 60 * 1000;     // 1 minute
+
+// ✅ Map insertion order = LRU order (oldest first)
 const cache = new Map();
 
-async function analyzeWithCache(code, dependencies) {
+// ✅ Hash function — full code string key nahi, sirf 32-char MD5
+function makeKey(code, dependencies, projectPath) {
+    const raw = JSON.stringify({ code, dependencies, projectPath });
+    return crypto.createHash("md5").update(raw).digest("hex");
+}
 
-  // ✅ Check cache first
-  if (cache.has(code)) {
-    console.log("⚡ Cache hit");
-    return cache.get(code);
-  }
+// ✅ LRU eviction — sabse purana entry delete karo
+function evictOldest() {
+    const oldestKey = cache.keys().next().value;
+    const entry = cache.get(oldestKey);
+    clearTimeout(entry.timer);
+    cache.delete(oldestKey);
+    console.log(`[Cache] Evicted oldest entry. Size: ${cache.size}`);
+}
 
-  console.log("🐢 Running fresh analysis");
+/**
+ * Analyze code with caching
+ * @param {string} code
+ * @param {Array}  dependencies
+ * @param {string} projectPath
+ */
+async function analyzeWithCache(code, dependencies = [], projectPath = "") {
 
-  // Run actual analysis
-  const result = await analyzeCode(code, dependencies);
+    const key = makeKey(code, dependencies, projectPath);
 
-  // Store in cache
-  cache.set(code, result);
+    // ✅ Cache hit — entry ko fresh karo (LRU refresh)
+    if (cache.has(key)) {
+        console.log(`[Cache] Hit — key: ${key.slice(0, 8)}...`);
 
-  // Optional: auto-delete after 1 min
-  setTimeout(() => {
-    cache.delete(code);
-  }, 60000);
+        // LRU refresh: delete aur re-insert taaki order update ho
+        const entry = cache.get(key);
+        cache.delete(key);
+        cache.set(key, entry);
 
-  return result;
+        return entry.result;
+    }
+
+    console.log(`[Cache] Miss — running fresh analysis. Size: ${cache.size}`);
+
+    // ✅ Size limit check — pehle jagah banao
+    if (cache.size >= MAX_CACHE_SIZE) {
+        evictOldest();
+    }
+
+    // ✅ Fresh analysis run karo
+    const result = await analyzeCode(code, dependencies, projectPath);
+
+    // ✅ TTL timer — auto-delete after 1 min
+    const timer = setTimeout(() => {
+        cache.delete(key);
+        console.log(`[Cache] TTL expired — key: ${key.slice(0, 8)}...`);
+    }, TTL_MS);
+
+    // Node.js process exit pe timer ko hang nahi karne dena
+    if (timer.unref) timer.unref();
+
+    cache.set(key, { result, timer });
+
+    return result;
+}
+
+// ✅ Cache stats — debugging ke liye useful
+function getCacheStats() {
+    return {
+        size: cache.size,
+        maxSize: MAX_CACHE_SIZE,
+        ttlSeconds: TTL_MS / 1000
+    };
+}
+
+// ✅ Manual cache clear — testing ya admin endpoint ke liye
+function clearCache() {
+    for (const entry of cache.values()) {
+        clearTimeout(entry.timer);
+    }
+    cache.clear();
+    console.log("[Cache] Cleared manually.");
 }
 
 module.exports = analyzeWithCache;
+module.exports.getCacheStats = getCacheStats;
+module.exports.clearCache = clearCache;
