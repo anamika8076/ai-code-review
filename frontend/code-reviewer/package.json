@@ -2,7 +2,7 @@
   "name": "codewise-ai",
   "displayName": "CodeWise AI",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.110.0"
   },

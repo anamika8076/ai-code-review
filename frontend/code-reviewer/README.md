@@ -1,4 +1,4 @@
-# AI Code Reviewer
+# CodeWise AI
 
 AI-powered VS Code extension for automated code review and auto-fix.
 
@@ -18,16 +18,17 @@ AI-powered VS Code extension for automated code review and auto-fix.
 
 ## How to Use
 
-1. Open any code file in VS Code
-2. Select code (or press `Cmd+A` to select all)
-3. Right click → **"AI Review: Analyze This"**
-4. View issues, AI review, and score
-5. Click **"Fix Issues"** to auto-fix
+1. Install the extension from VS Code Marketplace
+2. Open any code file in VS Code
+3. Select code (or press `Cmd+A` to select all)
+4. Right click → **"AI Review: Analyze This"**
+5. View issues, AI review, and score
+6. Click **"Fix Issues"** to auto-fix
 
 ## Requirements
 
-Backend server must be running at `http://localhost:3000` or configure custom URL in settings.
+No setup required! Backend is hosted on cloud. ☁️
 
 ## Extension Settings
 
-- `codeReviewer.backendUrl` — Backend server URL (default: `http://localhost:3000`)
+- `codeReviewer.backendUrl` — Custom backend URL (optional, default is cloud hosted)
