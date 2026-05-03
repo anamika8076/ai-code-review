@@ -72,8 +72,22 @@ exports.fixCode = async (req, res) => {
 
     // ✅ AI fix — final pass
     const fixWithAI = require("../services/aiFixer");
-    const aiFixedCode = await fixWithAI(currentCode, language || "javascript");
-    console.log(`[Controller] AI fix done — total: ${totalFixCount}`);
+    let aiFixedCode = await fixWithAI(currentCode, language || "javascript");
+    console.log(`[Controller] AI fix done`);
+
+    // ✅ AI fix ke baad bhi rule-based loop chalao
+    let postAiIterations = 0;
+    while (postAiIterations < MAX_ITERATIONS) {
+        const postResult = fixCodeService(aiFixedCode);
+        if (postResult.fixCount === 0) break;
+        totalFixCount += postResult.fixCount;
+        allFixLogs.push(...(postResult.fixLog || []));
+        aiFixedCode = postResult.fixedCode;
+        postAiIterations++;
+        console.log(`[Controller] Post-AI iteration ${postAiIterations} — ${postResult.fixCount} fixes`);
+    }
+
+    console.log(`[Controller] All done — total fixes: ${totalFixCount}`);
 
     res.json({
       fixedCode: aiFixedCode,
