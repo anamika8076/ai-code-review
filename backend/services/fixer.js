@@ -43,6 +43,10 @@ function fixCode(code) {
             const name = path.node.id?.name;
             if (name) declaredVars.set(name, path);
         },
+        FunctionDeclaration(path) {
+            const name = path.node.id?.name;
+            if (name) declaredVars.set(name, path);
+        },
         Identifier(path) {
             // Declaration ke alawa sab references collect karo
             const isDeclarationId =

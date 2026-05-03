@@ -223,6 +223,8 @@ async function analyzeCode(code, dependencies = [], projectPath = "") {
     issues.forEach(issue => {
         // ✅ ESLint unused-vars warning score affect nahi karegi
         if (issue.message && issue.message.includes("assigned a value but never used")) return;
+        if (issue.message && issue.message.includes("defined but never used")) return;
+        if (issue.message && issue.message.includes("is defined but never used")) return;
         if (issue.severity === "High")        score -= 3;
         else if (issue.severity === "Medium") score -= 2;
         else                                  score -= 1;
