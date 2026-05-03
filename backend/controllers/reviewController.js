@@ -51,19 +51,34 @@ exports.fixCode = async (req, res) => {
 
     console.log(`[Controller] Fix request — code size: ${code.length} chars`);
 
-    // ✅ Step 1: Rule-based fix
-    const result = fixCodeService(code);
-    console.log(`[Controller] Rule-based fix done — ${result.fixCount} fixes`);
+    // ✅ Loop mein fix karo jab tak koi fix na bache
+    let currentCode = code;
+    let totalFixCount = 0;
+    let allFixLogs = [];
+    let iterations = 0;
+    const MAX_ITERATIONS = 5;
 
-    // ✅ Step 2: AI fix
+    while (iterations < MAX_ITERATIONS) {
+        const result = fixCodeService(currentCode);
+        totalFixCount += result.fixCount;
+        allFixLogs.push(...(result.fixLog || []));
+        currentCode = result.fixedCode;
+        iterations++;
+
+        console.log(`[Controller] Iteration ${iterations} — ${result.fixCount} fixes`);
+
+        if (result.fixCount === 0) break;
+    }
+
+    // ✅ AI fix — final pass
     const fixWithAI = require("../services/aiFixer");
-    const aiFixedCode = await fixWithAI(result.fixedCode, language || "javascript");
-    console.log(`[Controller] AI fix done`);
+    const aiFixedCode = await fixWithAI(currentCode, language || "javascript");
+    console.log(`[Controller] AI fix done — total: ${totalFixCount}`);
 
     res.json({
       fixedCode: aiFixedCode,
-      fixCount:  result.fixCount,
-      fixLog:    result.fixLog || []
+      fixCount:  totalFixCount,
+      fixLog:    allFixLogs
     });
 
   } catch (error) {
